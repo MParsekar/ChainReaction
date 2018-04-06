@@ -1,0 +1,35 @@
+
+@media screen  and (min-width: 700px){
+    .gameBoard{
+        margin: auto;
+        margin-top: 40px;
+        display: table; 
+        border: 1px solid rgb(12, 139, 0);
+    }
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    .gameBoard div {
+        width: 50px;
+        height: 50px;
+        float: left;
+        display: table-cell;
+        border: 1px solid rgb(12, 139, 0);
+        position: relative;
+        box-shadow: inset 0px  0px 10px rgb(145, 145, 145);
+    }
+    .gameBoard div:hover{
+        background-color: rgba(128, 128, 128, 0.247);
+    }
+    .clearLeft{
+        clear: left;
+    }
+    .gameBoard div img{
+        width: 50px;
+        height: 50px;
+        position: absolute;
+        top:  0;
+        left: 0;
+    }
+}
