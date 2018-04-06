@@ -9,17 +9,48 @@ var colorAllowed = ["green", "red"];
 var curMovingImages = [];
 var intervalID = [];
 var moving = false;
-var TIMETOMOVE = 20;
+var TIMETOMOVE = 15;
+var userClick = 0;
+function restart() {
+    document.getElementById("ID_gameBoard").innerHTML = "";
+    userClick = 0;
+    curPlayer = 0;
+    loadGameBoard();
+    gameRestart();
+}
+function div() {
+    var elem = document.createElement("DIV");
+    elem.userID = -1;
+    elem.mass = 0;
+    elem.criticalMass = 0;
+    elem.validDirection = 0;
+    return elem;
+
+}
+function image(imageSrc) {
+    var image = document.createElement("IMG");
+    image.steps = 0;
+    image.direction;
+    image.setAttribute("src", imageSrc)
+    // image.moving = false;
+    return image;
+}
+function getCurClick() {
+    var curClick;
+    if (event.target.tagName == "IMG") {
+        curClick = event.target.parentNode;
+    } else {
+        curClick = event.target;
+    }
+    return curClick;
+}
 function loadGameBoard() {
     var cell;
     var loadChecks = "";
     for (var row = 0; row < TOTAL_ROW; row++) {
         for (var col = 0; col < TOTAL_COL; col++) {
-            cell = document.createElement("DIV");
-            cell.userID = -1;
-            cell.mass = 0;
-            cell.criticalMass = 0;
-            cell.validDirection = 0;
+            cell = div();
+
             if (row != FIRST_COL) {
                 cell.criticalMass++;
                 cell.validDirection |= UP;
@@ -44,19 +75,21 @@ function loadGameBoard() {
     }
 }
 function addimage(event) {
-    var curClick;
+
+    var curClick = getCurClick();
     var ok;
-    if (event.target.tagName == "IMG") {
-        curClick = event.target.parentNode;
-    } else {
-        curClick = event.target;
-    }
+    userClick++;
     if (curClick.userID == -1 || curClick.userID == curPlayer) {
         addMassToinTheCell(curClick);
 
-        if (!moving) {
-            curPlayer++;
 
+        if (!moving) {
+
+            curPlayer++;
+            
+            if (userClick > 1) {
+                determineWinner(curClick);
+            }
             if (curPlayer == totalNumberOfPlayer) {
                 curPlayer = 0;
             }
@@ -73,26 +106,22 @@ function addimage(event) {
 
 function addMassToinTheCell(curClick) {
     var imageSrc;
-
-    var image;
+    // var image;
     var curCell;
     var curMovingImageIndex = 0;
     curClick.userID = curPlayer;
     curClick.mass++;
     imageSrc = "Resource/Obj-" + curClick.userID + "-" + curClick.mass + ".gif";
     if (curClick.mass == 1) {
-        image = createSingleNewImage();
-        curClick.appendChild(image);
-        curClick.childNodes[0].setAttribute("src", imageSrc);
+        curClick.appendChild(image(imageSrc));
+        // curClick.childNodes[0].setAttribute("src", imageSrc);
     }
-    else if (curClick.mass == curClick.criticalMass) {
+    else if (curClick.mass >= curClick.criticalMass) {
         curClick.removeChild(curClick.childNodes[0]);
         imageSrc = "Resource/Obj-" + curPlayer + "-1.gif";
         //Create Four new Images 
         for (var i = 0; i < curClick.criticalMass; i++) {
-            curClick.appendChild(createSingleNewImage());
-            curClick.childNodes[i].setAttribute("src", imageSrc);
-
+            curClick.appendChild(image(imageSrc));
         }
         curMovingImages.push(curClick);
         while (curMovingImages.length != 0) {
@@ -100,27 +129,18 @@ function addMassToinTheCell(curClick) {
             curCell = curMovingImages.shift();
             intervalID[getCurElementNumber(curClick)] = setInterval(function () { moveTheMass(curCell) }, TIMETOMOVE);
         }
-       curClick.mass = 0;
+        curClick.mass = 0;
     }
     else {
         curClick.childNodes[0].setAttribute("src", imageSrc);
     }
 }
 
-function createSingleNewImage() {
-    var image = document.createElement("IMG");
-    image.steps = 0;
-    image.direction;
-    // image.moving = false;
-    return image;
-}
 function moveTheMass(curClick) {
     var i = 0;
-   
     if (curClick.children[0].steps > 54) {
-
         resetCurrentCell(curClick);
-        if ((curClick.validDirection & UP) == UP) {
+        if ((curClick.validDirection & UP) == UP) {       
             addMassToinTheCell(curClick.parentNode.childNodes[getCurElementNumber(curClick) - TOTAL_COL]);
         }
         if ((curClick.validDirection & LEFT) == LEFT) {
@@ -130,22 +150,29 @@ function moveTheMass(curClick) {
             addMassToinTheCell(curClick.parentNode.childNodes[getCurElementNumber(curClick) + TOTAL_COL]);
         }
         if ((curClick.validDirection & RIGHT) == RIGHT) {
-            addMassToinTheCell(curClick.parentNode.childNodes[getCurElementNumber(curClick) + 1]);
+            addMassToinTheCell(curClick.parentNode.childNodes[getCurElementNumber(curClick) + 1])
         }
-        if (!moving) {
-            curPlayer++;
+        setTimeout(changeGrid, 100);
+        function changeGrid() {
+            //do whatever you want here
+            if (!moving) {
+                
+                determineWinner(curClick);
+                curPlayer++;
+                if (curPlayer == totalNumberOfPlayer) {
+                    curPlayer = 0;
+                }
+                document.getElementById("qwer").innerHTML = curPlayer;
 
-            if (curPlayer == totalNumberOfPlayer) {
-                curPlayer = 0;
-            }
-            document.getElementById("qwer").innerHTML = curPlayer;
-            //Change the grid color
-            var grid = document.querySelectorAll(".gameBoard>div");
-            for (var i = 0; i < grid.length; i++) {
-                grid[i].style.borderColor = colorAllowed[curPlayer];
+                //Change the grid color
+                var grid = document.querySelectorAll(".gameBoard>div");
+                for (var i = 0; i < grid.length; i++) {
+                    grid[i].style.borderColor = colorAllowed[curPlayer];
+                }
             }
         }
-    }else{
+
+    } else {
         if ((curClick.validDirection & UP) == UP) {
             curClick.children[i].style.top = -(curClick.children[i].steps += 2) + "px";
             i++;
@@ -163,6 +190,28 @@ function moveTheMass(curClick) {
             i++;
         }
     }
+
+}
+function determineWinner(curClick) {
+    var childCollection = curClick.parentNode.children;
+    var prevCell = childCollection[0].userID;
+    var flag;
+    var count;
+    for (var i = 1; i < childCollection.length; i++) {
+        if (childCollection[i].userID != -1) {
+            if (prevCell == -1) {
+                prevCell = childCollection[i].userID;
+            } else if ((prevCell != childCollection[i].userID)) {
+                flag = -1;
+                break;
+            }
+        }
+    }
+    if ((flag != -1)) {
+        gameOver();
+    }
+
+
 }
 function getCurElementNumber(curClick) {
     var childCollection = curClick.parentNode.children;
@@ -180,4 +229,17 @@ function resetCurrentCell(curClick) {
     moving = false;
     curClick.userID = -1;
     clearInterval(intervalID[getCurElementNumber(curClick)]);
+}
+
+function gameOver() {
+
+    document.getElementById("ID_gameBoard").style.display = "none";
+    document.getElementById("gameOverID").style.display = "block";
+
+
+}
+
+function gameRestart() {
+    document.getElementById("ID_gameBoard").style.display = "table";
+    document.getElementById("gameOverID").style.display = "none";
 }
