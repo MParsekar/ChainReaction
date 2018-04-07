@@ -18,6 +18,21 @@ function restart() {
     loadGameBoard();
     gameRestart();
 }
+function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src=src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    document.body.appendChild(this.sound);
+    this.play = function(){
+        this.sound.play();
+    }
+    this.stop = function(){
+        this.sound.pause();
+    }
+}
+
 function div() {
     var elem = document.createElement("DIV");
     elem.userID = -1;
@@ -75,7 +90,7 @@ function loadGameBoard() {
     }
 }
 function addimage(event) {
-
+  
     var curClick = getCurClick();
     var ok;
     userClick++;
@@ -86,14 +101,14 @@ function addimage(event) {
         if (!moving) {
 
             curPlayer++;
-            
+
             if (userClick > 1) {
                 determineWinner(curClick);
             }
             if (curPlayer == totalNumberOfPlayer) {
                 curPlayer = 0;
             }
-            document.getElementById("qwer").innerHTML = curPlayer;
+
             //Change the grid color
             var grid = document.querySelectorAll(".gameBoard>div");
             for (var i = 0; i < grid.length; i++) {
@@ -116,13 +131,17 @@ function addMassToinTheCell(curClick) {
         curClick.appendChild(image(imageSrc));
         // curClick.childNodes[0].setAttribute("src", imageSrc);
     }
-    else if (curClick.mass >= curClick.criticalMass) {
+    else if (curClick.mass == curClick.criticalMass) {
+        
         curClick.removeChild(curClick.childNodes[0]);
         imageSrc = "Resource/Obj-" + curPlayer + "-1.gif";
         //Create Four new Images 
         for (var i = 0; i < curClick.criticalMass; i++) {
             curClick.appendChild(image(imageSrc));
+            var move=new sound("Resource/sound/colide.mp3");
+            move.play();
         }
+
         curMovingImages.push(curClick);
         while (curMovingImages.length != 0) {
             moving = true;
@@ -140,7 +159,10 @@ function moveTheMass(curClick) {
     var i = 0;
     if (curClick.children[0].steps > 54) {
         resetCurrentCell(curClick);
-        if ((curClick.validDirection & UP) == UP) {       
+        // var colide=new sound("Resource/sound/click.mp3");
+        //     colide.play();
+        if ((curClick.validDirection & UP) == UP) {
+            
             addMassToinTheCell(curClick.parentNode.childNodes[getCurElementNumber(curClick) - TOTAL_COL]);
         }
         if ((curClick.validDirection & LEFT) == LEFT) {
@@ -156,13 +178,13 @@ function moveTheMass(curClick) {
         function changeGrid() {
             //do whatever you want here
             if (!moving) {
-                
+
                 determineWinner(curClick);
                 curPlayer++;
                 if (curPlayer == totalNumberOfPlayer) {
                     curPlayer = 0;
                 }
-                document.getElementById("qwer").innerHTML = curPlayer;
+
 
                 //Change the grid color
                 var grid = document.querySelectorAll(".gameBoard>div");
@@ -232,7 +254,10 @@ function resetCurrentCell(curClick) {
 }
 
 function gameOver() {
-
+    var gameOverSound=new sound("Resource/sound/gameOver.mp3");
+    gameOverSound.play();
+    document.getElementById("qwer").innerHTML = curPlayer + 1;
+    document.getElementById("playerStats").style.color = colorAllowed[curPlayer];
     document.getElementById("ID_gameBoard").style.display = "none";
     document.getElementById("gameOverID").style.display = "block";
 
@@ -240,6 +265,9 @@ function gameOver() {
 }
 
 function gameRestart() {
+
+
     document.getElementById("ID_gameBoard").style.display = "table";
     document.getElementById("gameOverID").style.display = "none";
+
 }
